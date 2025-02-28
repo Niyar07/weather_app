@@ -1,7 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class Mainscreen extends StatelessWidget {
+class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key});
+
+  @override
+  State<Mainscreen> createState() => _MainscreenState();
+}
+
+class _MainscreenState extends State<Mainscreen> {
+  String apiKey = "vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9";
+
+  fetchCurrentCond() async {
+    final url =
+        'http://dataservice.accuweather.com/currentconditions/v1/204844?apikey=$apiKey&details= true';
+    final res = await http.get(Uri.parse(url));
+    print(res.body);
+  }
+
+  fetch12HoursData() async {
+    final url =
+        'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/204844?apikey=$apiKey';
+    final res = await http.get(Uri.parse(url));
+    print(res.body);
+  }
+
+  fetch5DaysData() async {
+    final url =
+        'http://dataservice.accuweather.com/forecasts/v1/daily/5day/204844?apikey=$apiKey';
+    final res = await http.get(Uri.parse(url));
+    print(res.body);
+  }
+
+  int tempareture = 0;
+
+  int weatherIconKey = 0;
+
+  String weatherTest = "";
+
+  double realFeel = 0;
+
+  double windSpeed = 0;
+
+  int uVindex = 0;
+
+  int humidity = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchCurrentCond();
+    fetch12HoursData();
+    fetch5DaysData();
+  }
 
   @override
   Widget build(BuildContext context) {
