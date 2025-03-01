@@ -28,37 +28,67 @@ class _MainscreenState extends State<Mainscreen> {
 
   bool isLoding = true;
 
+  // Next 12 hours Section variables
+  List<Map<String, dynamic>> data12Hr = [];
+
   fetchCurrentCond() async {
-    final url =
-        'http://dataservice.accuweather.com/currentconditions/v1/204844?apikey=vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9&details= true';
-    final res = await http.get(Uri.parse(url));
-    final data = jsonDecode(res.body);
-    Map<String, dynamic> weatherData = data[0];
-    // print(weatherData["WeatherText"]);
-    tempareture = double.parse(
-        (((weatherData["Temperature"])["Metric"])["Value"]).toString());
+    try {
+      final url =
+          'http://dataservice.accuweather.com/currentconditions/v1/204844?apikey=vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9&details= true';
+      final res = await http.get(Uri.parse(url));
+      final data = jsonDecode(res.body);
+      Map<String, dynamic> weatherData = data[0];
+      // print(weatherData["WeatherText"]);
+      tempareture = double.parse(
+          (((weatherData["Temperature"])["Metric"])["Value"]).toString());
 
-    weatherIconKey = weatherData["WeatherIcon"];
+      weatherIconKey = weatherData["WeatherIcon"];
 
-    weatherTest = weatherData["WeatherText"];
+      weatherTest = weatherData["WeatherText"];
 
-    realFeel = double.parse(
-        (((weatherData["RealFeelTemperature"])["Metric"])["Value"]).toString());
+      realFeel = double.parse(
+          (((weatherData["RealFeelTemperature"])["Metric"])["Value"])
+              .toString());
 
-    windSpeed = (((weatherData["Wind"])["Speed"])["Metric"])["Value"];
+      windSpeed = (((weatherData["Wind"])["Speed"])["Metric"])["Value"];
 
-    uVindex = weatherData["UVIndex"];
+      uVindex = weatherData["UVIndex"];
 
-    humidity = weatherData["RelativeHumidity"];
+      humidity = weatherData["RelativeHumidity"];
 
-    setState(() {});
+      setState(() {});
+    } catch (e) {
+      print("Error Occured - ${e.toString()}");
+    }
   }
 
   fetch12HoursData() async {
-    final url =
-        'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/204844?apikey=vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9';
-    final res = await http.get(Uri.parse(url));
-    // print(res.body);
+    try {
+      // Next 12 hours Section variables
+      int weatherIconKey12Hr = 01;
+      String timeString = "00";
+      double temp_12Hr = 00;
+
+      final url =
+          'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/204844?apikey=vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9';
+      final res = await http.get(Uri.parse(url));
+      // print(res.body);
+
+      List<dynamic> data = jsonDecode(res.body);
+      data.forEach((map) {
+        weatherIconKey12Hr = map["WeatherIcon"];
+        timeString = (DateTime.parse(map["DateTime"]).hour).toString();
+        temp_12Hr = 5 / 9 * (map["Temperature"]["Value"] - 32);
+        Map<String, dynamic> indexData = {
+          "wi": weatherIconKey12Hr,
+          "t": timeString,
+          "temp": temp_12Hr
+        };
+        data12Hr.add(indexData);
+      });
+    } catch (e) {
+      print("Error Occured - ${e.toString()}");
+    }
   }
 
   fetch5DaysData() async {
@@ -193,10 +223,10 @@ class _MainscreenState extends State<Mainscreen> {
                           height: 20,
                         ),
                         SizedBox(
-                          height: 95,
+                          height: 110,
                           child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: 100,
+                              itemCount: data12Hr.length,
                               itemBuilder: (context, index) {
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -204,21 +234,25 @@ class _MainscreenState extends State<Mainscreen> {
                                   child: Column(
                                     children: [
                                       Text(
-                                        "11am",
+                                        data12Hr[index]["t"],
                                         style: TextStyle(fontSize: 15),
                                       ),
                                       SizedBox(
                                         height: 7,
                                       ),
-                                      Icon(
-                                        Icons.cloud,
-                                        size: 27,
-                                      ),
+                                      // Icon(
+                                      //   Icons.cloud,
+                                      //   size: 27,
+                                      // ),
+                                      Image.network(
+                                          "https://developer.accuweather.com/sites/default/files/${data12Hr[index]['wi'].toString().padLeft(2, '0')}-s.png"),
                                       SizedBox(
                                         height: 7,
                                       ),
                                       Text(
-                                        "29",
+                                        data12Hr[index]["temp"]
+                                            .toString()
+                                            .substring(0, 4),
                                         style: TextStyle(fontSize: 15),
                                       ),
                                     ],
