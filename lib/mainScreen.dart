@@ -28,8 +28,11 @@ class _MainscreenState extends State<Mainscreen> {
 
   bool isLoding = true;
 
-  // Next 12 hours Section variables
+  // Next 12 hours Section List
   List<Map<String, dynamic>> data12Hr = [];
+
+  // Next 5 Days Section List
+  List<Map<String, dynamic>> data5days = [];
 
   fetchCurrentCond() async {
     try {
@@ -92,10 +95,31 @@ class _MainscreenState extends State<Mainscreen> {
   }
 
   fetch5DaysData() async {
+    int weatherIconKey5day = 01;
+    String dayString = "01";
+    double temp_5day = 00;
     final url =
         'http://dataservice.accuweather.com/forecasts/v1/daily/5day/204844?apikey=vRAYpV5BPdbyTYdmWUtaGRipEfJ7w3A9';
     final res = await http.get(Uri.parse(url));
-    // print(res.body);
+    print(res.body);
+
+    final data = jsonDecode(res.body);
+
+    List<dynamic> df = data["DailyForecasts"];
+    df.forEach((map) {
+      weatherIconKey5day = map["Day"]["Icon"];
+      dayString = DateTime.parse(map["Date"].toString()).day.toString();
+      double minTemp = 5 / 9 * (map["Temperature"]["Minimum"]["Value"] - 32);
+      double maxTemp = 5 / 9 * (map["Temperature"]["Maximum"]["Value"] - 32);
+      temp_5day = (maxTemp + minTemp) / 2;
+
+      Map<String, dynamic> data5d = {
+        "wi": weatherIconKey5day,
+        "d": dayString,
+        "temp": temp_5day
+      };
+      data5days.add(data5d);
+    });
 
     setState(() {
       isLoding = false;
@@ -285,10 +309,10 @@ class _MainscreenState extends State<Mainscreen> {
                           height: 20,
                         ),
                         SizedBox(
-                          height: 95,
+                          height: 110,
                           child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: 100,
+                              itemCount: data5days.length,
                               itemBuilder: (context, index) {
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -296,21 +320,25 @@ class _MainscreenState extends State<Mainscreen> {
                                   child: Column(
                                     children: [
                                       Text(
-                                        "11am",
+                                        data5days[index]["d"],
                                         style: TextStyle(fontSize: 15),
                                       ),
                                       SizedBox(
                                         height: 7,
                                       ),
-                                      Icon(
-                                        Icons.cloud,
-                                        size: 27,
-                                      ),
+                                      // Icon(
+                                      //   Icons.cloud,
+                                      //   size: 27,
+                                      // ),
+                                      Image.network(
+                                          "https://developer.accuweather.com/sites/default/files/${data5days[index]["wi"].toString().padLeft(2, '0')}-s.png"),
                                       SizedBox(
                                         height: 7,
                                       ),
                                       Text(
-                                        "29",
+                                        data5days[index]["temp"]
+                                            .toString()
+                                            .substring(0, 4),
                                         style: TextStyle(fontSize: 15),
                                       ),
                                     ],
