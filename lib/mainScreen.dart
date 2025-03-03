@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key});
@@ -28,6 +29,7 @@ class _MainscreenState extends State<Mainscreen> {
 
   bool isLoding = true;
 
+  String moreDetailUri = "";
   // Next 12 hours Section List
   List<Map<String, dynamic>> data12Hr = [];
 
@@ -56,7 +58,7 @@ class _MainscreenState extends State<Mainscreen> {
       windSpeed = (((weatherData["Wind"])["Speed"])["Metric"])["Value"];
 
       uVindex = weatherData["UVIndex"];
-
+      moreDetailUri = weatherData["Link"];
       humidity = weatherData["RelativeHumidity"];
 
       setState(() {});
@@ -111,6 +113,7 @@ class _MainscreenState extends State<Mainscreen> {
       dayString = DateTime.parse(map["Date"].toString()).day.toString();
       double minTemp = 5 / 9 * (map["Temperature"]["Minimum"]["Value"] - 32);
       double maxTemp = 5 / 9 * (map["Temperature"]["Maximum"]["Value"] - 32);
+
       temp_5day = (maxTemp + minTemp) / 2;
 
       Map<String, dynamic> data5d = {
@@ -124,6 +127,12 @@ class _MainscreenState extends State<Mainscreen> {
     setState(() {
       isLoding = false;
     });
+  }
+
+  Future<void> _launchUrl(String urrlString) async {
+    if (!await launchUrl(Uri.parse(urrlString))) {
+      throw Exception('Could not launch $urrlString ');
+    }
   }
 
   @override
@@ -356,9 +365,15 @@ class _MainscreenState extends State<Mainscreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       ElevatedButton(
-                          onPressed: () {}, child: Text("AccuWeather")),
+                          onPressed: () {
+                            _launchUrl("https://accuweather.com/");
+                          },
+                          child: Text("AccuWeather")),
                       ElevatedButton(
-                          onPressed: () {}, child: Text("More Details"))
+                          onPressed: () {
+                            _launchUrl(moreDetailUri);
+                          },
+                          child: Text("More Details"))
                     ],
                   )
                 ],
@@ -366,4 +381,6 @@ class _MainscreenState extends State<Mainscreen> {
             ),
           );
   }
+
+  void loadNextPage() {}
 }
